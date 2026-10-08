@@ -1,0 +1,578 @@
+@import "tailwindcss";
+@import "./styles/fonts.css";
+
+/*
+ * Sistema visual da Smarthere.
+ *
+ * A empresa chegou sem marca; esta é a primeira. A referência é a bancada de
+ * reparo vista de perto — o preto fosco do celular desligado, o alumínio do
+ * chassi, o âmbar do cabo flexível e a luz de um instrumento de medição:
+ *
+ *   breu/grafite — o fundo: o vidro de um celular apagado
+ *   chumbo       — fios e bordas, quase invisíveis
+ *   aço/névoa    — o alumínio do chassi; o texto secundário
+ *   gelo         — o texto principal
+ *   sinal        — o verde-limão de um laser de diagnóstico. A cor da marca.
+ *                  Em botão, ponto, palavra de ênfase — nunca em texto corrido
+ *   cobre        — o âmbar do flex e do cobre da placa. Só em detalhe
+ *
+ * E a grade milimetrada: a textura de fundo é a do tapete de silicone da
+ * bancada, sempre discreta.
+ */
+@theme {
+  --color-breu: #07080a;
+  --color-grafite: #0e1014;
+  --color-grafite-2: #15181e;
+  --color-chumbo: #232832;
+  --color-nevoa: #8a93a3;
+  --color-aco: #c7cdd6;
+  --color-gelo: #f2f4f7;
+  --color-sinal: #c8ff2e;
+  --color-sinal-escuro: #8fbd00;
+  --color-cobre: #ff8a3d;
+
+  --font-display: "Unbounded", "Arial Black", system-ui, sans-serif;
+  --font-sans: "Geist", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Consolas, monospace;
+
+  --ease-sh: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-corte: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+@layer base {
+  html {
+    background: var(--color-breu);
+    color: var(--color-gelo);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: auto;
+    scroll-padding-top: 5rem;
+  }
+
+  body {
+    min-height: 100dvh;
+    overflow-x: clip;
+    background: var(--color-breu);
+  }
+
+  ::selection {
+    background: var(--color-sinal);
+    color: var(--color-breu);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-sinal);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums lining-nums;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@utility container-x {
+  width: 100%;
+  max-width: 92rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  @media (min-width: 640px) {
+    padding-inline: 2rem;
+  }
+  @media (min-width: 1024px) {
+    padding-inline: 3.5rem;
+  }
+}
+
+/* O título: Unbounded pesada, entrelinha apertada. Sem caixa alta — a marca
+   se escreve em minúsculas, e o título conversa com ela. */
+@utility titulo {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+}
+
+/* A palavra de ênfase: a mesma família, mais leve, na cor de sinal. */
+@utility enfase {
+  font-weight: 300;
+  color: var(--color-sinal);
+}
+
+@utility rotulo {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* Alumínio escovado — o chassi. Só em título grande. */
+@utility aluminio {
+  background: linear-gradient(
+    172deg,
+    #ffffff 0%,
+    var(--color-aco) 34%,
+    #7d8594 58%,
+    var(--color-gelo) 80%,
+    #6c7482 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Texto vazado: só o contorno. Para as palavras gigantes de fundo. */
+@utility vazado {
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in oklab, var(--color-gelo) 16%, transparent);
+}
+
+/*
+ * Texto legível sobre o celular 3D: uma sombra larga e escura atrás das
+ * letras. No celular, os cartões ficam quase transparentes (o aparelho
+ * aparece através deles) e é a sombra que garante o contraste.
+ */
+@utility legivel {
+  text-shadow:
+    0 1px 2px rgba(7, 8, 10, 0.9),
+    0 0 18px rgba(7, 8, 10, 0.85);
+}
+
+/* Texto em gradiente (background-clip) é transparente: a sombra de texto
+   apareceria POR DENTRO das letras. Nele, a sombra vira filtro. */
+.legivel .aluminio,
+.aluminio.legivel {
+  text-shadow: none;
+  filter: drop-shadow(0 0 10px rgba(7, 8, 10, 0.85));
+}
+
+@utility fio {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, currentColor 12%, currentColor 88%, transparent);
+  opacity: 0.2;
+}
+
+/*
+ * A grade milimetrada do tapete de bancada: linhas finas a cada 8 px e uma
+ * mais forte a cada 40 px, em SVG embutido. Escala sem serrilhar e não pede
+ * requisição.
+ */
+@utility grade {
+  background-image:
+    linear-gradient(rgba(242, 244, 247, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(242, 244, 247, 0.035) 1px, transparent 1px),
+    linear-gradient(rgba(242, 244, 247, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(242, 244, 247, 0.015) 1px, transparent 1px);
+  background-size:
+    40px 40px,
+    40px 40px,
+    8px 8px,
+    8px 8px;
+}
+
+@utility grao {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.9 0 0 0 0 0.92 0 0 0 0 0.95 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ── Botões ─────────────────────────────────────────────────────────────── */
+
+@utility botao {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.7rem;
+  min-height: 3.25rem;
+  padding: 0 1.7rem;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  letter-spacing: 0.005em;
+  isolation: isolate;
+  overflow: hidden;
+  transition:
+    color 400ms var(--ease-sh),
+    border-color 400ms var(--ease-sh),
+    transform 400ms var(--ease-sh);
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    transform: translateY(101%);
+    transition: transform 520ms var(--ease-sh);
+  }
+  &:hover::before {
+    transform: translateY(0);
+  }
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+/* O principal: o sinal, e acende em gelo ao passar. */
+@utility botao-sinal {
+  background: var(--color-sinal);
+  color: var(--color-breu);
+  box-shadow: 0 18px 50px -20px rgba(200, 255, 46, 0.65);
+  &::before {
+    background: var(--color-gelo);
+  }
+}
+
+@utility botao-gelo {
+  background: var(--color-gelo);
+  color: var(--color-breu);
+  &::before {
+    background: var(--color-sinal);
+  }
+}
+
+@utility botao-linha {
+  border: 1px solid color-mix(in oklab, var(--color-gelo) 24%, transparent);
+  color: var(--color-gelo);
+  &::before {
+    background: var(--color-gelo);
+  }
+  &:hover {
+    color: var(--color-breu);
+    border-color: var(--color-gelo);
+  }
+}
+
+/* ── Animações ──────────────────────────────────────────────────────────── */
+
+@keyframes marquee-x {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-100%, 0, 0);
+  }
+}
+
+@keyframes pulso {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+.pulso::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: currentColor;
+  animation: pulso 2.2s var(--ease-sh) infinite;
+}
+
+@keyframes flutua {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0);
+  }
+}
+
+@keyframes pisca {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* A varredura do laser: uma linha que desce pela caixa. */
+@keyframes varre {
+  0% {
+    transform: translateY(-10%);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(1100%);
+    opacity: 0;
+  }
+}
+
+/* ── Abertura ───────────────────────────────────────────────────────────── */
+
+@keyframes traco {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes preenche {
+  from {
+    fill-opacity: 0;
+  }
+  to {
+    fill-opacity: 1;
+  }
+}
+
+@keyframes sobe-suave {
+  from {
+    transform: translateY(40%);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes cortina-sobe {
+  to {
+    clip-path: inset(0 0 100% 0);
+  }
+}
+
+@keyframes selo-sai {
+  to {
+    transform: translateY(-30px) scale(0.92);
+    opacity: 0;
+  }
+}
+
+.abertura-traco {
+  stroke-dasharray: 1;
+  animation:
+    traco 800ms var(--ease-corte) both,
+    preenche 400ms ease-out 600ms both;
+}
+
+.abertura-sobe {
+  animation: sobe-suave 600ms var(--ease-sh) 450ms both;
+}
+
+.abertura-saindo {
+  animation: cortina-sobe 1000ms var(--ease-corte) 150ms both;
+}
+
+.abertura-saindo .abertura-selo {
+  animation: selo-sai 450ms var(--ease-corte) both;
+}
+
+/* ── Herói ──────────────────────────────────────────────────────────────── */
+
+/*
+ * REGRA: o estado escondido só existe com a classe `heroi-armado`. Sem ela —
+ * JS que não rodou, erro no meio do caminho — o título nasce visível.
+ */
+@keyframes linha-sobe {
+  from {
+    transform: translateY(110%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes aparece {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.heroi-armado:not(.heroi-pronto) [data-linha] > span,
+.heroi-armado:not(.heroi-pronto) [data-surge] {
+  opacity: 0;
+}
+
+.heroi-pronto [data-linha] > span {
+  animation: linha-sobe 1100ms var(--ease-sh) both;
+  animation-delay: calc(var(--i, 0) * 110ms);
+}
+
+.heroi-pronto [data-surge] {
+  animation: aparece 900ms var(--ease-sh) both;
+  animation-delay: calc(450ms + var(--i, 0) * 90ms);
+}
+
+/* ── Menu em tela cheia ─────────────────────────────────────────────────── */
+
+@keyframes menu-abre {
+  from {
+    clip-path: circle(0% at calc(100% - 3rem) 2.5rem);
+  }
+  to {
+    clip-path: circle(150% at calc(100% - 3rem) 2.5rem);
+  }
+}
+
+@keyframes menu-fecha {
+  from {
+    clip-path: circle(150% at calc(100% - 3rem) 2.5rem);
+  }
+  to {
+    clip-path: circle(0% at calc(100% - 3rem) 2.5rem);
+  }
+}
+
+@keyframes menu-item {
+  from {
+    opacity: 0;
+    transform: translateY(40%);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.menu-painel {
+  animation: menu-abre 800ms var(--ease-corte) both;
+}
+
+.menu-painel.menu-saindo {
+  animation: menu-fecha 450ms var(--ease-corte) both;
+  pointer-events: none;
+}
+
+.menu-item {
+  animation: menu-item 700ms var(--ease-sh) both;
+  animation-delay: calc(200ms + var(--i, 0) * 60ms);
+}
+
+/* ── Títulos: a varredura do laser ──────────────────────────────────────── */
+
+/*
+ * O texto se revela da esquerda para a direita (clip-path num retângulo) e
+ * um feixe verde corre na frente, na mesma curva e na mesma duração — a
+ * leitura de um scanner passando. O feixe é a borda direita de um trilho que
+ * atravessa o título com `transform`.
+ */
+.corte {
+  position: relative;
+}
+
+.corte-texto {
+  transition: clip-path 1100ms var(--ease-corte);
+}
+
+.corte[data-corte="armado"] .corte-texto {
+  clip-path: inset(-0.3em 100% -0.3em 0);
+}
+
+.corte[data-corte="feito"] .corte-texto {
+  clip-path: inset(-0.3em -0.2em -0.3em 0);
+}
+
+.corte-trilho {
+  position: absolute;
+  inset: -8% 0;
+  pointer-events: none;
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.corte-lamina {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    #ffffff 18%,
+    var(--color-sinal) 82%,
+    transparent
+  );
+  box-shadow:
+    0 0 14px 3px rgba(200, 255, 46, 0.7),
+    0 0 42px 10px rgba(200, 255, 46, 0.25);
+}
+
+@keyframes lamina-corre {
+  0% {
+    transform: translateX(-100%);
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+}
+
+.corte[data-corte="feito"] .corte-trilho {
+  animation: lamina-corre 1100ms var(--ease-corte) both;
+}
+
+/* ── Raio-X: os passos do tour ──────────────────────────────────────────── */
+
+/* Sem a cena 3D (movimento reduzido, sem WebGL), o passo é um cartão comum.
+   Com ela, o passo inativo fica apagado e o da vez acende. */
+[data-raiox-armado] [data-passo] {
+  transition:
+    opacity 600ms var(--ease-sh),
+    transform 600ms var(--ease-sh);
+}
+
+[data-raiox-armado] [data-passo]:not([data-ativo]) {
+  opacity: 0.28;
+}
+
+[data-raiox-armado] [data-passo][data-ativo] {
+  opacity: 1;
+}
+
+/* ── Movimento reduzido: caminho alternativo completo ───────────────────── */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+
+  .heroi-armado [data-linha] > span,
+  .heroi-armado [data-surge] {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
