@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📱 Orçamentos
+    url: https://smarthere.com.br/#diagnostico
+    about: Orçamento de conserto é pelo site — este repositório é só o código do site.

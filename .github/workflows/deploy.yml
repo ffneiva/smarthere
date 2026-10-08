@@ -1,0 +1,292 @@
+# Repositório público: o ARN da role e o ID da distribuição são SECRETS
+# (AWS_ROLE_ARN, CLOUDFRONT_DISTRIBUTION_ID) — o GitHub os mascara no log.
+# Variables: AWS_REGION, S3_BUCKET_NAME e as VITE_* do build.
+
+name: 📱 Deploy — Smarthere
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Um deploy por vez. Se dois commits caírem juntos, o segundo espera em vez de
+# disputar o mesmo bucket — e o primeiro é cancelado, porque só interessa o
+# estado final.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  id-token: write # necessário para o OIDC trocar o token do GitHub por credenciais AWS
+
+jobs:
+  deploy:
+    name: Build & publicar
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://smarthere.com.br
+
+    steps:
+      - name: ⬇️ Checkout
+        uses: actions/checkout@v5
+        with:
+          # O sitemap usa a data do último commit; sem histórico, `git log` não
+          # devolve nada e o lastmod cai para a data de hoje.
+          fetch-depth: 0
+
+      - name: 🟢 Node 22
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: 📦 Instalar dependências
+        run: npm ci
+
+      - name: 🎨 Lint
+        run: npm run lint
+
+      # A geração do JSON-LD e a regra "nenhum preço no site" são o que um
+      # erro de conteúdo quebraria sem ninguém ver na tela.
+      - name: 🧪 Testes unitários
+        run: npm run test
+
+      # `vite build` e `vite dev` resolvem módulos por caminhos diferentes: dá
+      # para ter build verde e `npm run dev` quebrando no primeiro import. Este
+      # passo sobe o dev server de verdade e percorre o grafo a partir da entrada.
+      - name: 🖥️ Smoke test do dev server
+        run: npm run check:dev
+
+      - name: 🏗️ Build
+        env:
+          # Sem estas variáveis o site funciona inteiro, apenas sem medição.
+          # Ficam como Variables (não Secrets) de propósito: um ID de medição
+          # não é segredo, e Secrets não são legíveis no log quando algo falha.
+          VITE_GTAG_ID: ${{ vars.VITE_GTAG_ID }}
+          VITE_SENTRY_DSN: ${{ vars.VITE_SENTRY_DSN }}
+        run: npm run build
+
+      # As credenciais são temporárias (1h) e emitidas na hora pelo STS a partir
+      # do token OIDC do GitHub. Não existe access key guardada em lugar nenhum.
+      - name: 🔐 Assumir a role na AWS (OIDC)
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          mask-aws-account-id: true
+          role-session-name: github-deploy-${{ github.run_id }}
+          aws-region: ${{ vars.AWS_REGION }}
+
+      # 1) Tudo que tem hash no nome (ou muda junto com o deploy) pode ser
+      #    cacheado para sempre — o nome muda quando o conteúdo muda.
+      - name: 📤 Assets (cache imutável)
+        run: |
+          aws s3 sync dist/ "s3://${{ vars.S3_BUCKET_NAME }}" \
+            --delete \
+            --only-show-errors \
+            --exclude "*index.html" \
+            --exclude "404.html" \
+            --exclude "robots.txt" \
+            --exclude "sitemap.xml" \
+            --exclude "llms.txt" \
+            --exclude "site.webmanifest" \
+            --exclude "og*.jpg" \
+            --exclude "favicon*" \
+            --exclude "apple-touch-icon.png" \
+            --exclude "icon-*.png" \
+            --exclude "google*.html" \
+            --cache-control "public,max-age=31536000,immutable"
+
+      # 2) O AWS CLI adivinha o Content-Type pelo mimetypes do Python, que não
+      #    conhece .woff2, .webp nem .avif — sem isto subiriam como
+      #    binary/octet-stream, e o navegador as recusaria. Uma segunda passada
+      #    corrige só esses tipos.
+      - name: 🏷️ Corrigir Content-Type de fontes e imagens
+        run: |
+          aws s3 cp "s3://${{ vars.S3_BUCKET_NAME }}/images" "s3://${{ vars.S3_BUCKET_NAME }}/images" \
+            --recursive --only-show-errors \
+            --exclude "*" --include "*.webp" \
+            --content-type "image/webp" \
+            --cache-control "public,max-age=31536000,immutable" \
+            --metadata-directive REPLACE
+
+          aws s3 cp "s3://${{ vars.S3_BUCKET_NAME }}/images" "s3://${{ vars.S3_BUCKET_NAME }}/images" \
+            --recursive --only-show-errors \
+            --exclude "*" --include "*.avif" \
+            --content-type "image/avif" \
+            --cache-control "public,max-age=31536000,immutable" \
+            --metadata-directive REPLACE
+
+          aws s3 cp "s3://${{ vars.S3_BUCKET_NAME }}/fonts" "s3://${{ vars.S3_BUCKET_NAME }}/fonts" \
+            --recursive --only-show-errors \
+            --exclude "*" --include "*.woff2" \
+            --content-type "font/woff2" \
+            --cache-control "public,max-age=31536000,immutable" \
+            --metadata-directive REPLACE
+
+      # 3) Os index.html referenciam os assets com hash: se ficarem em cache, o
+      #    visitante continua vendo a versão antiga do site.
+      #
+      #    São vários — o build gera um por rota (dist/politica-de-privacidade/index.html e
+      #    afins) mais o dist/404.html, cada um com título, description e
+      #    canonical próprios. O laço evita que uma rota nova seja esquecida.
+      - name: 📤 HTML de todas as rotas (sem cache)
+        run: |
+          while IFS= read -r f; do
+            KEY="${f#dist/}"
+            aws s3 cp "$f" "s3://${{ vars.S3_BUCKET_NAME }}/$KEY" \
+              --only-show-errors \
+              --content-type "text/html; charset=utf-8" \
+              --cache-control "no-cache,must-revalidate"
+            echo "publicado: /$KEY"
+          done < <(find dist -name '*.html' -not -name 'google*')
+
+      - name: 📤 Arquivos de SEO e manifest
+        run: |
+          aws s3 cp dist/robots.txt "s3://${{ vars.S3_BUCKET_NAME }}/robots.txt" \
+            --only-show-errors --content-type "text/plain; charset=utf-8" \
+            --cache-control "public,max-age=3600"
+
+          aws s3 cp dist/sitemap.xml "s3://${{ vars.S3_BUCKET_NAME }}/sitemap.xml" \
+            --only-show-errors --content-type "application/xml; charset=utf-8" \
+            --cache-control "public,max-age=3600"
+
+          # O llms.txt é Markdown servido como texto: `text/markdown` faria o
+          # navegador baixar o arquivo em vez de exibi-lo, e quem abre a URL
+          # está justamente querendo lê-la.
+          aws s3 cp dist/llms.txt "s3://${{ vars.S3_BUCKET_NAME }}/llms.txt" \
+            --only-show-errors --content-type "text/plain; charset=utf-8" \
+            --cache-control "public,max-age=3600"
+
+          aws s3 cp dist/site.webmanifest "s3://${{ vars.S3_BUCKET_NAME }}/site.webmanifest" \
+            --only-show-errors --content-type "application/manifest+json" \
+            --cache-control "public,max-age=86400"
+
+      # As artes de compartilhamento ficam de fora do cache imutável.
+      #
+      # O nome delas não tem hash — precisa não ter, porque a meta tag do
+      # `og:image` é escrita a partir da rota (ver ogArquivoDe em routes.ts) e
+      # os robôs sociais guardam a URL. Com `immutable` de um ano, trocar a arte
+      # não teria efeito nenhum até o cache expirar. Um dia é o meio-termo: as
+      # imagens quase nunca mudam, e quando mudam, aparecem.
+      # Ícones e artes de compartilhamento têm nome fixo (o navegador e o robô
+      # do WhatsApp procuram pelo nome). O HTML aponta cada um com ?v=<hash do
+      # conteúdo>, então um dia de cache basta: a troca chega pela URL nova.
+      - name: 📤 Ícones e imagens de compartilhamento
+        run: |
+          shopt -s nullglob
+          for f in dist/favicon* dist/apple-touch-icon.png dist/icon-*.png; do
+            aws s3 cp "$f" "s3://${{ vars.S3_BUCKET_NAME }}/$(basename "$f")" \
+              --only-show-errors --cache-control "public,max-age=86400"
+          done
+          for f in dist/og*.jpg; do
+            aws s3 cp "$f" "s3://${{ vars.S3_BUCKET_NAME }}/$(basename "$f")" \
+              --only-show-errors --content-type "image/jpeg" \
+              --cache-control "public,max-age=86400"
+            echo "publicado: $(basename "$f")"
+          done
+
+      # Arquivos de verificação de propriedade (Google Search Console e afins).
+      # Cache curto de propósito: se o token for trocado, o novo precisa valer
+      # na hora — um `immutable` de um ano deixaria o Google lendo o antigo.
+      - name: 📤 Arquivos de verificação
+        run: |
+          shopt -s nullglob
+          for f in dist/google*.html; do
+            aws s3 cp "$f" "s3://${{ vars.S3_BUCKET_NAME }}/$(basename "$f")" \
+              --only-show-errors --content-type "text/html; charset=utf-8" \
+              --cache-control "public,max-age=300"
+            echo "publicado: $(basename "$f")"
+          done
+
+      - name: 🔄 Invalidar o CloudFront
+        run: |
+          ID=$(aws cloudfront create-invalidation \
+            --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --paths "/*" \
+            --query 'Invalidation.Id' --output text)
+          echo "Invalidação criada: $ID"
+          aws cloudfront wait invalidation-completed \
+            --distribution-id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --id "$ID"
+
+      # Confere que o site respondeu 200 antes de declarar sucesso — um deploy
+      # verde com o site fora do ar é pior do que um deploy vermelho.
+      #
+      # Enquanto o DNS do domínio próprio não estiver apontado, testar
+      # smarthere.com.br deixaria TODO deploy vermelho por um motivo que não é
+      # do deploy. Então o teste cai para o endereço do CloudFront, que é sempre
+      # válido, e avisa em vez de falhar.
+      - name: ✅ Smoke test
+        run: |
+          CF_DOMAIN=$(aws cloudfront get-distribution \
+            --id "${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}" \
+            --query 'Distribution.DomainName' --output text)
+          echo "::add-mask::$CF_DOMAIN"
+
+          check() { curl -sS -o /dev/null -w "%{http_code}" --max-time 20 "$1" 2>/dev/null || echo "000"; }
+
+          STATUS=$(check "https://smarthere.com.br/")
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ https://smarthere.com.br/ → 200"
+            echo "SITE_URL=https://smarthere.com.br" >> "$GITHUB_ENV"
+          else
+            echo "::warning::O domínio próprio respondeu $STATUS. Testando o endereço do CloudFront."
+            STATUS=$(check "https://$CF_DOMAIN/")
+            echo "endereço da distribuição → $STATUS"
+            echo "SITE_URL=https://$CF_DOMAIN" >> "$GITHUB_ENV"
+            test "$STATUS" = "200"
+          fi
+
+      # Cada rota precisa responder com o título DELA. Se a
+      # reescrita da CloudFront Function quebrar, a URL ainda devolve 200 — só
+      # que com a home inteira dentro. Conferir o título pega isso.
+      - name: 🔎 Conferir o HTML de cada rota
+        run: |
+          falhou=0
+          confere() {
+            TITULO=$(curl -s --max-time 20 "$SITE_URL/$1" | grep -o '<title>[^<]*</title>' || echo "")
+            echo "  /$1 → $TITULO"
+            case "$TITULO" in
+              *"$2"*) ;;
+              *) echo "::error::/$1 não está servindo o HTML próprio da rota"; falhou=1 ;;
+            esac
+          }
+          confere marca 'Manual da marca'
+          confere politica-de-privacidade 'Política de privacidade'
+
+          # O 404 precisa responder 404 de verdade. Um 200 com a home dentro é
+          # o *soft 404* que o Google trata como sinal de site mal cuidado.
+          CODIGO=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 "$SITE_URL/rota-que-nao-existe-$RANDOM")
+          echo "  endereço inexistente → $CODIGO"
+          test "$CODIGO" = "404" || { echo "::error::endereço inexistente devolveu $CODIGO, não 404"; falhou=1; }
+
+          test "$falhou" -eq 0
+
+      # A distribuição devolve o 404.html em qualquer erro, então um arquivo de
+      # verificação ausente responderia com o HTML da página de erro e o Search
+      # Console falharia com "conteúdo não confere" sem dizer que o arquivo
+      # sumiu. Aqui o conteúdo é comparado byte a byte.
+      - name: 🔎 Conferir arquivos de verificação
+        run: |
+          shopt -s nullglob
+          for f in dist/google*.html; do
+            NAME=$(basename "$f")
+            REMOTO=$(curl -s --max-time 20 "$SITE_URL/$NAME")
+            if [ "$REMOTO" = "$(cat "$f")" ]; then
+              echo "✅ $NAME confere"
+            else
+              echo "::error::$NAME não confere. Servido: $(echo "$REMOTO" | head -c 120)"
+              exit 1
+            fi
+          done
+
+      - name: 📋 Resumo
+        run: |
+          {
+            echo "### 🚀 Deploy concluído"
+            echo ""
+            echo "- **Site:** $SITE_URL"
+            echo "- **Commit:** \`${{ github.sha }}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
