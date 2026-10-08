@@ -30,14 +30,14 @@ jobs:
 
     steps:
       - name: ⬇️ Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           # O sitemap usa a data do último commit; sem histórico, `git log` não
           # devolve nada e o lastmod cai para a data de hoje.
           fetch-depth: 0
 
       - name: 🟢 Node 22
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
           cache: npm
@@ -71,7 +71,7 @@ jobs:
       # As credenciais são temporárias (1h) e emitidas na hora pelo STS a partir
       # do token OIDC do GitHub. Não existe access key guardada em lugar nenhum.
       - name: 🔐 Assumir a role na AWS (OIDC)
-        uses: aws-actions/configure-aws-credentials@v5
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           mask-aws-account-id: true
