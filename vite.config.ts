@@ -5,9 +5,10 @@ import path from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
-import { EMPRESA, INDEXAVEL, linkContato, SITE_URL } from './src/lib/business.ts'
+import { EMPRESA, FAQ, INDEXAVEL, linkContato, SERVICOS, SITE_URL } from './src/lib/business.ts'
+import { PAGINAS, paginaDe } from './src/lib/paginas.ts'
 import { canonicalDe, NAO_ENCONTRADA, ogArquivoDe, ogUrlDe, ROTAS } from './src/lib/routes.ts'
-import { gerarJsonLd, gerarLlmsTxt } from './src/lib/seo.ts'
+import { gerarJsonLd, gerarLlmsFullTxt, gerarLlmsTxt } from './src/lib/seo.ts'
 
 /**
  * Diretiva de robôs.
@@ -58,25 +59,61 @@ const ARQUIVOS_DE_MARCA = [
  * rotas (no `generateBundle`) — uma função só impede que as duas divirjam.
  */
 /**
- * O conteúdo do <noscript>, a partir de business.ts — endereço e contatos
- * escritos à mão no index.html envelheceriam sem ninguém notar.
+ * O conteúdo do <noscript>, por rota, a partir de business.ts e paginas.ts.
+ *
+ * O corpo do site é montado pelo React. O Google executa o JavaScript e lê
+ * tudo, mas o Bing nem sempre, e os robôs dos assistentes de IA (ChatGPT,
+ * Claude, Perplexity) em geral não executam: sem isto, eles liam só um
+ * resumo genérico, com o mesmo H1 em todas as páginas. Aqui cada página leva
+ * o próprio conteúdo, em HTML simples. Com JavaScript ligado, o navegador
+ * ignora o <noscript>: o visual não muda.
  */
-function noscript(): string {
-  const estilo = 'color: #c8ff2e'
+function noscript(rota: (typeof ROTAS)[number]): string {
+  const e = escapar
+  const lista = (itens: string[], tag = 'ul') =>
+    `<${tag}>${itens.map((i) => `<li>${e(i)}</li>`).join('')}</${tag}>`
+  const link = (href: string, texto: string) =>
+    `<a href="${e(href)}" style="color: #c8ff2e">${e(texto)}</a>`
+  const contato = `<p>${link(linkContato(), 'Pedir orçamento pelo WhatsApp')} · WhatsApp ${e(EMPRESA.telefone)}</p>`
+  const servicos = `<h2>Serviços</h2><ul>${PAGINAS.map((p) => `<li>${link(`/conserto/${p.slug}`, p.nome)}</li>`).join('')}</ul>`
+  let corpo: string
+  const p = rota.pagina ? paginaDe(rota.pagina) : undefined
+  if (p) {
+    corpo = `<p>${link('/', 'Início')} / ${link('/#servicos', 'Serviços')} / ${e(p.nome)}</p>
+        <h1>${e(p.h1)}</h1>
+        <p>${e(p.resumo)}</p>
+        ${contato}
+        <h2>Como saber se é isso</h2>${lista(p.sinais)}
+        <h2>Por que acontece</h2><p>${e(p.causas)}</p>
+        <h2>Como é o reparo</h2>${lista(p.reparo, 'ol')}
+        <h2>Até o conserto</h2>${lista(p.cuidados)}
+        <h2>Perguntas sobre ${e(p.nome.toLowerCase())}</h2>
+        ${p.perguntas.map((q) => `<h3>${e(q.pergunta)}</h3><p>${e(q.resposta)}</p>`).join('')}
+        ${servicos}`
+  } else if (rota.path === '/') {
+    corpo = `<h1>${e(EMPRESA.nome)}: conserto de celular</h1>
+        <p>${e(EMPRESA.lema)} ${e(EMPRESA.descricao)}</p>
+        ${contato}
+        <h2>O que a gente conserta</h2>
+        <ul>${SERVICOS.map((s) => `<li>${s.slug ? link(`/conserto/${s.slug}`, s.nome) : e(s.nome)}: ${e(s.detalhe)}</li>`).join('')}</ul>
+        <h2>Perguntas frequentes</h2>
+        ${FAQ.map((q) => `<h3>${e(q.pergunta)}</h3><p>${e(q.resposta)}</p>`).join('')}`
+  } else {
+    corpo = `<p>${link('/', 'Início')} / ${e(rota.rotulo)}</p>
+        <h1>${e(rota.titulo.replace(/ · Smarthere$/, ''))}</h1>
+        <p>${e(rota.descricao)}</p>
+        ${contato}
+        ${servicos}`
+  }
   return `<noscript>
-      <div style="padding: 3rem 1.5rem; font-family: Arial, sans-serif; color: #f2f4f7; background: #07080a">
-        <h1 style="font-size: 1.8rem; margin: 0 0 1rem">${escapar(EMPRESA.nome)}</h1>
-        <p>${escapar(EMPRESA.lema)} ${escapar(EMPRESA.descricao)}</p>
-        <p>
-          <a href="${escapar(linkContato())}" style="${estilo}">Pedir orçamento</a> ·
-          WhatsApp ${escapar(EMPRESA.telefone)}
-        </p>
+      <div style="padding: 3rem 1.5rem; font-family: Arial, sans-serif; color: #f2f4f7; background: #07080a; line-height: 1.5">
+        ${corpo}
       </div>
     </noscript>`
 }
 
 function headDaRota(html: string, rota: (typeof ROTAS)[number]): string {
-  html = html.replace(/<noscript>[\s\S]*?<\/noscript>/, noscript())
+  html = html.replace(/<noscript>[\s\S]*?<\/noscript>/, noscript(rota))
   const titulo = escapar(rota.titulo)
   const descricao = escapar(rota.descricao)
   const canonica = canonicalDe(rota)
@@ -207,11 +244,12 @@ function seoPlugin(): Plugin {
         type: 'asset',
         fileName: 'robots.txt',
         source: INDEXAVEL
-          ? `User-agent: *\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`
+          ? `User-agent: *\nAllow: /\n\n# Assistentes de IA: liberados de propósito (o site quer ser citado).\nUser-agent: GPTBot\nAllow: /\n\nUser-agent: OAI-SearchBot\nAllow: /\n\nUser-agent: ClaudeBot\nAllow: /\n\nUser-agent: PerplexityBot\nAllow: /\n\nUser-agent: Google-Extended\nAllow: /\n\nSitemap: ${SITE_URL}/sitemap.xml\n`
           : 'User-agent: *\nAllow: /\n',
       })
 
       this.emitFile({ type: 'asset', fileName: 'llms.txt', source: gerarLlmsTxt() })
+      this.emitFile({ type: 'asset', fileName: 'llms-full.txt', source: gerarLlmsFullTxt() })
     },
   }
 }

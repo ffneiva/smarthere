@@ -106,7 +106,7 @@ export default function Servico({ slug }: { slug: string }) {
             ))}
           </ol>
           <p className="mt-8 max-w-[62ch] text-sm leading-relaxed text-nevoa">
-            O orçamento vem por escrito, com peça, mão de obra e prazo, antes de qualquer reparo —
+            O orçamento vem por escrito, com peça, mão de obra e prazo, antes de qualquer reparo,
             como manda o{' '}
             <a
               href="/#direitos"

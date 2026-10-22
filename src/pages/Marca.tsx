@@ -52,7 +52,7 @@ export default function Marca() {
       <TopoPagina
         rotulo="Manual da marca"
         titulo="smart + here."
-        apoio="O nome junta duas palavras; o símbolo, duas formas. O contorno de um celular cuja base afina até virar a ponta de um pin de localização — e o furo do pin é a câmera frontal. Conserto inteligente, aqui."
+        apoio="O nome junta duas palavras; o símbolo, duas formas. O contorno de um celular cuja base afina até virar a ponta de um pin de localização, e o furo do pin é a câmera frontal. Conserto inteligente, aqui."
       />
 
       {/* O símbolo e a construção */}
@@ -131,7 +131,7 @@ export default function Marca() {
               {[
                 [
                   'Corpo',
-                  `Retângulo de ${MEDIDAS.largura} de largura com cantos de raio ${MEDIDAS.raio} — a proporção de um celular visto de frente.`,
+                  `Retângulo de ${MEDIDAS.largura} de largura com cantos de raio ${MEDIDAS.raio}: a proporção de um celular visto de frente.`,
                 ],
                 [
                   'Ombro',
@@ -235,7 +235,7 @@ export default function Marca() {
               {
                 titulo: 'Não faça',
                 texto:
-                  'Não use o sinal em texto corrido nem sobre fundo claro sem contorno — ele some.',
+                  'Não use o sinal em texto corrido nem sobre fundo claro sem contorno: ele some.',
               },
             ].map((r) => (
               <div key={r.texto} className="rounded-3xl border border-gelo/10 p-6">

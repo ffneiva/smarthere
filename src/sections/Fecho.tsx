@@ -58,7 +58,7 @@ export function Fecho() {
           <span className="block text-sinal">here.</span>
         </h2>
         <p className="mt-8 max-w-[40ch] text-[1.1rem] leading-relaxed text-aco">
-          {EMPRESA.assinatura} Conte o modelo e o problema — o orçamento vem por escrito, antes de
+          {EMPRESA.assinatura} Conte o modelo e o problema: o orçamento vem por escrito, antes de
           qualquer reparo.
         </p>
         <BotaoContato origem="fecho" className="botao-sinal mt-10" icone />

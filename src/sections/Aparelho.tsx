@@ -171,7 +171,7 @@ export function Aparelho({ pronto, com3D }: { pronto: boolean; com3D: boolean })
               </h2>
               <p className="mt-6 max-w-[44ch] text-[1.05rem] leading-relaxed text-aco">
                 Um celular é uma pilha de camadas coladas e parafusadas. Da tampa traseira até a
-                tela, cada peça entra no lugar com o sintoma que dá quando falha — e o que a gente
+                tela, cada peça entra no lugar com o sintoma que dá quando falha e o que a gente
                 faz.
               </p>
               {!com3D && <ImagemAparelho tipo="frente" className="mt-8 h-[60svh] w-auto" />}

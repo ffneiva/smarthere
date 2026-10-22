@@ -68,7 +68,7 @@ export function Diagnostico() {
           rotulo="Diagnóstico rápido"
           titulo="Conte o que houve."
           enfase="A mensagem sai pronta."
-          apoio="Três perguntas. Nada é enviado até você tocar no botão — e o que vai é exatamente o texto que aparece ao lado."
+          apoio="Três perguntas. Nada é enviado até você tocar no botão, e o que vai é exatamente o texto que aparece ao lado."
         />
 
         <div className="mt-14 grid gap-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-14">

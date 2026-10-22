@@ -37,7 +37,7 @@ export const EMPRESA = {
   /** A frase da marca: "smart" + "here". */
   assinatura: 'O conserto inteligente acontece aqui.',
   descricao:
-    'Assistência técnica de celulares: troca de tela e bateria, conector de carga, câmera, tampa traseira, áudio, botões e reparo de placa — com orçamento por escrito antes de qualquer reparo.',
+    'Assistência técnica de celulares: troca de tela e bateria, conector de carga, câmera, tampa traseira, áudio, botões e reparo de placa, com orçamento por escrito antes de qualquer reparo.',
   /**
    * O WhatsApp da loja, só dígitos com DDI e DDD — o único canal de contato
    * (a empresa não tem e-mail). Passado pelo Felipe em 06/10/2026 como
@@ -128,7 +128,7 @@ export const PASSOS: Passo[] = [
       'Câmera tremendo ou fazendo barulho',
       'Tela preta ao abrir a câmera',
     ],
-    nota: 'Quando só o vidrinho da lente quebrou, ele é trocado sozinho — sem mexer no módulo. Se o problema for o módulo, dizemos qual das câmeras e por quê.',
+    nota: 'Quando só o vidrinho da lente quebrou, ele é trocado sozinho, sem mexer no módulo. Se o problema for o módulo, dizemos qual das câmeras e por quê.',
     mensagem: 'Olá, Smarthere! Quero um orçamento de reparo de câmera.',
   },
   {
@@ -140,7 +140,7 @@ export const PASSOS: Passo[] = [
     sintomas: ['Não liga', 'Reinicia sozinho', 'Sem sinal ou sem Wi-Fi', 'Caiu na água'],
     // CONFIRMAR: a loja vai oferecer microssoldagem (componente) ou só troca
     // de módulo? O texto abaixo assume microscópio e estação de solda.
-    nota: 'Com microscópio e estação de solda, o reparo é no componente que falhou — um capacitor, um CI — e não na troca da placa inteira, que costuma custar quase um aparelho novo.',
+    nota: 'Com microscópio e estação de solda, o reparo é no componente que falhou (um capacitor, um CI), e não na troca da placa inteira, que costuma custar quase um aparelho novo.',
     mensagem: 'Olá, Smarthere! Meu celular não liga / tem problema na placa.',
   },
   {
@@ -150,7 +150,7 @@ export const PASSOS: Passo[] = [
     pecas3d: ['bateria'],
     servico: 'Troca de bateria',
     sintomas: ['Descarrega rápido', 'Desliga com carga sobrando', 'Esquenta ou estufou'],
-    nota: 'Bateria estufada empurra a tela e a tampa para fora. Se for o caso, pare de usar e de carregar o aparelho e traga logo — não tente furar nem apertar.',
+    nota: 'Bateria estufada empurra a tela e a tampa para fora. Se for o caso, pare de usar e de carregar o aparelho e traga logo. Não tente furar nem apertar.',
     mensagem: 'Olá, Smarthere! Quero um orçamento de troca de bateria.',
   },
   {
@@ -190,7 +190,7 @@ export const PASSOS: Passo[] = [
     pecas3d: ['vidro', 'tela'],
     servico: 'Troca de tela',
     sintomas: ['Vidro trincado', 'Toque falhando ou "fantasma"', 'Manchas, linhas ou tela preta'],
-    nota: 'Nos aparelhos atuais, vidro e display vêm colados de fábrica — a troca é do conjunto. Antes de fechar, testamos toque, brilho, cores e o sensor de proximidade.',
+    nota: 'Nos aparelhos atuais, vidro e display vêm colados de fábrica: a troca é do conjunto. Antes de fechar, testamos toque, brilho, cores e o sensor de proximidade.',
     mensagem: 'Olá, Smarthere! Quero um orçamento de troca de tela.',
   },
 ]
@@ -254,10 +254,11 @@ export const SERVICOS: Servico[] = [
     nome: 'Software e dados',
     detalhe: 'Backup, transferência para o aparelho novo, atualização e restauração',
     mensagem: 'Olá, Smarthere! Preciso de ajuda com backup/transferência de dados.',
+    slug: 'backup-e-transferencia-de-dados-do-celular',
   },
   {
     nome: 'Diagnóstico',
-    detalhe: 'Não sabe o que é? Abrimos, medimos e dizemos — antes de qualquer reparo',
+    detalhe: 'Não sabe o que é? Abrimos, medimos e dizemos, antes de qualquer reparo',
     mensagem: 'Olá, Smarthere! Meu celular está com um problema e não sei o que é.',
   },
 ]
@@ -285,7 +286,7 @@ export const ETAPAS: Etapa[] = [
     numero: '02',
     titulo: 'Diagnóstico na bancada',
     texto:
-      'O aparelho é aberto, medido e testado. A gente diz o que é — e o que não é, para você não pagar por peça que não precisava.',
+      'O aparelho é aberto, medido e testado. A gente diz o que é e o que não é, para você não pagar por peça que não precisava.',
     leitura: 'MEDIÇÃO',
   },
   {
@@ -335,7 +336,7 @@ export const DIREITOS: Direito[] = [
     artigo: 'Art. 21',
     titulo: 'Peça adequada',
     texto:
-      'No conserto, a peça de reposição tem de ser original e nova, ou manter as especificações técnicas do fabricante — e uma peça fora disso só com a sua autorização.',
+      'No conserto, a peça de reposição tem de ser original e nova, ou manter as especificações técnicas do fabricante. Uma peça fora disso só com a sua autorização.',
     citacao:
       'No fornecimento de serviços que tenham por objetivo a reparação de qualquer produto considerar-se-á implícita a obrigação do fornecedor de empregar componentes de reposição originais adequados e novos, ou que mantenham as especificações técnicas do fabricante, salvo, quanto a estes últimos, autorização em contrário do consumidor.',
   },
@@ -391,12 +392,12 @@ export const SOCORROS: Socorro[] = [
   {
     titulo: 'Caiu na água',
     passos: [
-      'Desligue e não carregue até secar — corrente elétrica com umidade é o que oxida a placa.',
+      'Desligue e não carregue até secar: corrente elétrica com umidade é o que oxida a placa.',
       'Seque por fora e deixe a porta de carga virada para baixo, em lugar ventilado.',
       'Não coloque no arroz: pequenas partículas podem entrar no aparelho e danificá-lo.',
     ],
     fonte: {
-      rotulo: 'Apple — Se um alerta de detecção de líquido for exibido no iPhone',
+      rotulo: 'Apple · Se um alerta de detecção de líquido for exibido no iPhone',
       url: 'https://support.apple.com/pt-br/102643',
     },
   },
@@ -412,7 +413,7 @@ export const SOCORROS: Socorro[] = [
     titulo: 'Tela trincada',
     passos: [
       'Uma película por cima segura os cacos e protege o dedo até o reparo.',
-      'Se o toque começar a falhar sozinho, faça backup já — o próximo passo pode ser a tela apagar.',
+      'Se o toque começar a falhar sozinho, faça backup já: o próximo passo pode ser a tela apagar.',
     ],
   },
 ]
@@ -423,12 +424,12 @@ export const FAQ = [
   {
     pergunta: 'Quanto custa o conserto?',
     resposta:
-      'Depende do modelo e da peça — uma tela de um aparelho pode custar o triplo da de outro. Mande o modelo e o problema que respondemos com uma estimativa; o valor fechado vem por escrito depois do diagnóstico, antes de qualquer reparo.',
+      'Depende do modelo e da peça: uma tela de um aparelho pode custar o triplo da de outro. Mande o modelo e o problema que respondemos com uma estimativa; o valor fechado vem por escrito depois do diagnóstico, antes de qualquer reparo.',
   },
   {
     pergunta: 'Quanto tempo leva?',
     resposta:
-      'Depende do reparo e de a peça estar em estoque. O prazo vem junto com o orçamento, com data de início e de término — é assim que a lei pede (CDC, art. 40).',
+      'Depende do reparo e de a peça estar em estoque. O prazo vem junto com o orçamento, com data de início e de término, como a lei pede (CDC, art. 40).',
   },
   {
     pergunta: 'Que peça vocês usam?',
@@ -438,12 +439,12 @@ export const FAQ = [
   {
     pergunta: 'Vou perder minhas fotos e conversas?',
     resposta:
-      'A maioria dos reparos (tela, bateria, conector, câmera) não mexe no armazenamento. Reparo de placa pode mexer — nesses casos avisamos antes e, se o aparelho ainda liga, ajudamos a fazer o backup primeiro.',
+      'A maioria dos reparos (tela, bateria, conector, câmera) não mexe no armazenamento. Reparo de placa pode mexer: nesses casos avisamos antes e, se o aparelho ainda liga, ajudamos a fazer o backup primeiro.',
   },
   {
     pergunta: 'O conserto tem garantia?',
     resposta:
-      'Sim. Pelo Código de Defesa do Consumidor, você tem 90 dias, a partir da entrega, para reclamar de defeito no serviço (art. 26, II). A garantia cobre o serviço feito e a peça trocada — não cobre uma queda ou um contato com líquido novos.',
+      'Sim. Pelo Código de Defesa do Consumidor, você tem 90 dias, a partir da entrega, para reclamar de defeito no serviço (art. 26, II). A garantia cobre o serviço feito e a peça trocada, mas não cobre uma queda ou um contato com líquido novos.',
   },
   {
     pergunta: 'Quais marcas vocês atendem?',
@@ -484,5 +485,5 @@ export const NAO_ENCONTRADA_TEXTO = {
   rotulo: 'Erro 404',
   titulo: 'Essa peça não está aqui.',
   apoio:
-    'O endereço que você abriu não existe — ou foi desmontado. Os caminhos abaixo levam ao que costuma ser procurado.',
+    'O endereço que você abriu não existe, ou foi desmontado. Os caminhos abaixo levam ao que costuma ser procurado.',
 }

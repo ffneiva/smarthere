@@ -11,7 +11,7 @@ import {
   SITE_URL,
 } from './business.ts'
 import { PAGINAS } from './paginas.ts'
-import { canonicalDe, ROTAS } from './routes.ts'
+import { canonicalDe, ogUrlDe, ROTAS } from './routes.ts'
 
 /**
  * Dados estruturados (JSON-LD) e llms.txt — ambos derivados de business.ts.
@@ -37,9 +37,24 @@ function noDaEmpresa() {
     slogan: EMPRESA.lema,
     description: EMPRESA.descricao,
     url: `${SITE_URL}/`,
-    logo: `${SITE_URL}/icon-512.png`,
+    logo: {
+      '@type': 'ImageObject',
+      '@id': `${SITE_URL}/#logo`,
+      url: `${SITE_URL}/icon-512.png`,
+      width: 512,
+      height: 512,
+      caption: EMPRESA.nome,
+    },
     image: `${SITE_URL}/og.jpg`,
     telephone: `+${EMPRESA.whatsapp}`,
+    // O único canal da loja é o WhatsApp: o ponto de contato diz isso ao Google.
+    contactPoint: {
+      '@type': 'ContactPoint',
+      telephone: `+${EMPRESA.whatsapp}`,
+      contactType: 'customer service',
+      availableLanguage: ['pt-BR'],
+      url: linkContato(),
+    },
     ...(e
       ? {
           address: {
@@ -132,12 +147,51 @@ function noDoFaq() {
 function trilha(path: string) {
   const rota = ROTAS.find((r) => r.path === path)
   if (!rota || path === '/') return null
+  const itens = [{ name: 'Início', item: `${SITE_URL}/` }]
+  if (rota.pagina) itens.push({ name: 'Serviços', item: `${SITE_URL}/#servicos` })
+  itens.push({ name: rota.rotulo, item: canonicalDe(rota) })
   return {
     '@type': 'BreadcrumbList',
-    itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Início', item: `${SITE_URL}/` },
-      { '@type': 'ListItem', position: 2, name: rota.rotulo, item: canonicalDe(rota) },
-    ],
+    '@id': `${canonicalDe(rota)}#trilha`,
+    itemListElement: itens.map((x, i) => ({ '@type': 'ListItem', position: i + 1, ...x })),
+  }
+}
+
+/**
+ * A página em si: liga título, descrição, imagem e trilha à empresa e ao
+ * site. É o nó que diz ao Google "esta URL é sobre isto, publicada por quem".
+ */
+function noDaPagina(path: string) {
+  const rota = ROTAS.find((r) => r.path === path)
+  if (!rota) return null
+  const url = canonicalDe(rota)
+  return {
+    '@type': 'WebPage',
+    '@id': `${url}#pagina`,
+    url,
+    name: rota.titulo,
+    description: rota.descricao,
+    inLanguage: 'pt-BR',
+    isPartOf: { '@id': `${SITE_URL}/#site` },
+    about: { '@id': ID },
+    primaryImageOfPage: { '@type': 'ImageObject', url: ogUrlDe(rota), width: 1200, height: 630 },
+    ...(path !== '/' ? { breadcrumb: { '@id': `${url}#trilha` } } : {}),
+    ...(rota.pagina ? { mainEntity: { '@id': `${url}#servico` } } : {}),
+  }
+}
+
+/** Na home: a lista das páginas de serviço, na ordem do site. */
+function listaDeServicos() {
+  return {
+    '@type': 'ItemList',
+    '@id': `${SITE_URL}/#servicos`,
+    name: 'Serviços de conserto de celular da Smarthere',
+    itemListElement: PAGINAS.map((p, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: p.nome,
+      url: `${SITE_URL}/conserto/${p.slug}`,
+    })),
   }
 }
 
@@ -147,7 +201,9 @@ function trilha(path: string) {
  */
 export function gerarJsonLd(path = '/') {
   const grafo: Record<string, unknown>[] = [noDaEmpresa(), noDoSite()]
-  if (path === '/') grafo.push(noDoFaq())
+  const pagina = noDaPagina(path)
+  if (pagina) grafo.push(pagina)
+  if (path === '/') grafo.push(noDoFaq(), listaDeServicos())
   const rota = ROTAS.find((r) => r.path === path)
   if (rota?.pagina) grafo.push(...noDoServico(rota.pagina))
   const b = trilha(path)
@@ -175,7 +231,7 @@ export function gerarLlmsTxt(): string {
   l.push('- Preços: informados no orçamento (o site não publica preço).', '')
   l.push('## Serviços', '')
   for (const s of SERVICOS) {
-    const pagina = s.slug ? ` — ${SITE_URL}/conserto/${s.slug}` : ''
+    const pagina = s.slug ? ` (${SITE_URL}/conserto/${s.slug})` : ''
     l.push(`- ${s.nome}: ${s.detalhe}${pagina}`)
   }
   l.push('', '## Guias por serviço', '')
@@ -189,11 +245,25 @@ export function gerarLlmsTxt(): string {
   l.push('', '## As peças do celular e o que costuma falhar', '')
   for (const p of PASSOS) l.push(`- ${p.peca} (${p.servico}): ${p.sintomas.join('; ')}. ${p.nota}`)
   l.push('', '## Como funciona', '')
-  for (const e of ETAPAS) l.push(`${e.numero}. ${e.titulo} — ${e.texto}`)
-  l.push('', `## Seus direitos no conserto (Código de Defesa do Consumidor — ${CDC_URL})`, '')
+  for (const e of ETAPAS) l.push(`${e.numero}. ${e.titulo}: ${e.texto}`)
+  l.push('', `## Seus direitos no conserto (Código de Defesa do Consumidor, ${CDC_URL})`, '')
   for (const d of DIREITOS) l.push(`- ${d.artigo} · ${d.titulo}: ${d.texto}`)
   l.push('', '## Marcas atendidas', '', MARCAS.join(', '), '')
   l.push('## Perguntas frequentes', '')
   for (const p of FAQ) l.push(`**${p.pergunta}**`, p.resposta, '')
+  return `${l.join('\n').trim()}\n`
+}
+
+/**
+ * llms-full.txt: o llms.txt com o passo a passo de cada reparo. Para os
+ * assistentes de IA que leem o site inteiro de uma vez, sem executar o JS.
+ */
+export function gerarLlmsFullTxt(): string {
+  const l: string[] = [gerarLlmsTxt().trim(), '', '## Como é cada reparo, passo a passo', '']
+  for (const p of PAGINAS) {
+    l.push(`### ${p.h1}`, '', `${SITE_URL}/conserto/${p.slug}`, '')
+    l.push(...p.reparo.map((r, i) => `${i + 1}. ${r}`))
+    l.push('')
+  }
   return `${l.join('\n').trim()}\n`
 }

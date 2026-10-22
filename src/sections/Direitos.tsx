@@ -26,7 +26,7 @@ export function Direitos() {
             apoio={
               <>
                 Vale aqui e em qualquer assistência. Está no Código de Defesa do Consumidor (Lei
-                8.078/1990) —{' '}
+                8.078/1990):{' '}
                 <a
                   href={CDC_URL}
                   target="_blank"

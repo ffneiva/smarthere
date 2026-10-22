@@ -1,5 +1,6 @@
 import { registrar } from '@/lib/analytics'
 import { EMPRESA, linkContato, SERVICOS } from '@/lib/business'
+import { PAGINAS } from '@/lib/paginas'
 import { BotaoContato } from './Contato'
 import { IconeGithub, IconeInstagram, IconeWhatsApp } from './Icones'
 import { Nome, Simbolo } from './Logo'
@@ -9,6 +10,9 @@ import { Nome, Simbolo } from './Logo'
  * nada. Endereço, telefone e Instagram só aparecem quando existirem em
  * business.ts — o rodapé não guarda lugar para dado que não há.
  */
+/** As páginas de conserto por marca (/conserto/conserto-de-iphone etc.). */
+const MARCA_PAGINA = /^conserto-de-(iphone|celular-)/
+
 export function Footer() {
   const ano = new Date().getFullYear()
   const e = EMPRESA.endereco
@@ -53,7 +57,7 @@ export function Footer() {
               <>
                 <p>{e.logradouro}</p>
                 <p>
-                  {e.bairro} · {e.cidade} – {e.uf}
+                  {e.bairro} · {e.cidade}/{e.uf}
                 </p>
                 <p className="tabular">CEP {e.cep}</p>
               </>
@@ -77,6 +81,14 @@ export function Footer() {
           <div>
             <p className="rotulo mb-3 text-sinal">Mais</p>
             <ul className="flex flex-col gap-1">
+              {/* Páginas por marca: o que se digita junto com o nome do aparelho. */}
+              {PAGINAS.filter((p) => MARCA_PAGINA.test(p.slug)).map((p) => (
+                <li key={p.slug}>
+                  <a href={`/conserto/${p.slug}`} className="hover:text-gelo">
+                    {p.nome}
+                  </a>
+                </li>
+              ))}
               <li>
                 <a href="/#direitos" className="hover:text-gelo">
                   Seus direitos no conserto

@@ -116,7 +116,7 @@ export function Nav({ aoNavegar, aoSecao }: Props) {
               e.preventDefault()
               ir('/')
             }}
-            aria-label={`${EMPRESA.nome} — início`}
+            aria-label={`${EMPRESA.nome}, início`}
           >
             <Logo />
           </a>

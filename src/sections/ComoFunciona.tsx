@@ -50,7 +50,7 @@ export function ComoFunciona() {
               rotulo="Como funciona"
               titulo="Nada é trocado"
               enfase="sem você saber."
-              apoio="Cinco etapas, do primeiro contato à entrega. Três delas são o que a lei já garante — e a gente faz questão de dizer qual."
+              apoio="Cinco etapas, do primeiro contato à entrega. Três delas são o que a lei já garante, e a gente faz questão de dizer qual."
             />
           </div>
 

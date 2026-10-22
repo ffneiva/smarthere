@@ -15,7 +15,7 @@ import {
 } from '@/lib/business'
 import { PAGINAS } from '@/lib/paginas'
 import { canonicalDe, NAO_ENCONTRADA, ogArquivoDe, ogUrlDe, ROTAS, rotaDe } from '@/lib/routes'
-import { gerarJsonLd, gerarLlmsTxt } from '@/lib/seo'
+import { gerarJsonLd, gerarLlmsFullTxt, gerarLlmsTxt } from '@/lib/seo'
 import { cn, prefersReducedMotion } from '@/lib/utils'
 
 type No = Record<string, unknown> & { '@type': string }
@@ -185,6 +185,35 @@ describe('llms.txt', () => {
     expect(txt).toContain('Art. 40')
     for (const p of FAQ) expect(txt).toContain(p.pergunta)
     expect(txt.endsWith('\n')).toBe(true)
+  })
+})
+
+describe('SEO além do básico', () => {
+  it('toda rota tem um WebPage ligado à empresa, ao site e à imagem dela', () => {
+    for (const r of ROTAS) {
+      const [p] = doTipo(r.path, 'WebPage')
+      expect(p, r.path).toBeDefined()
+      expect(p['@id']).toBe(`${canonicalDe(r)}#pagina`)
+      expect(p.about).toEqual({ '@id': 'https://smarthere.com.br/#smarthere' })
+      expect(JSON.stringify(p.primaryImageOfPage)).toContain(ogUrlDe(r))
+    }
+  })
+
+  it('cada página de serviço tem arte de compartilhamento própria', () => {
+    const artes = ROTAS.filter((r) => r.pagina).map((r) => ogArquivoDe(r))
+    expect(new Set(artes).size).toBe(artes.length)
+    for (const a of artes) expect(a).not.toBe('og.jpg')
+  })
+
+  it('nenhum travessão no texto do site (a regra do Felipe: é cara de texto de IA)', () => {
+    const tudo = JSON.stringify([BUSINESS, PAGINAS, ROTAS])
+    expect(tudo).not.toMatch(/[—–]/)
+    expect(gerarLlmsFullTxt()).not.toMatch(/[—–]/)
+  })
+
+  it('llms-full.txt traz o passo a passo de cada reparo', () => {
+    const txt = gerarLlmsFullTxt()
+    for (const p of PAGINAS) expect(txt).toContain(p.reparo[0])
   })
 })
 

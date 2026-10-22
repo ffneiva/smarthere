@@ -20,6 +20,27 @@ export type Rota = {
   ogNota?: string
 }
 
+/**
+ * As duas linhas da arte de compartilhamento de cada página de serviço: o
+ * que aparece no WhatsApp quando alguém manda o link. Curtas, porque a
+ * Unbounded é larga (cerca de 13 letras por linha na arte).
+ */
+const OG_SERVICO: Record<string, readonly [string, string]> = {
+  'troca-de-tela-de-celular': ['Troca de tela', 'de celular.'],
+  'troca-de-bateria-de-celular': ['Troca de', 'bateria.'],
+  'conector-de-carga-de-celular': ['Não carrega?', 'É o conector.'],
+  'conserto-de-camera-de-celular': ['Conserto', 'de câmera.'],
+  'troca-de-tampa-traseira-de-celular': ['Vidro de trás', 'trincado?'],
+  'reparo-de-placa-de-celular': ['Não liga?', 'Reparo de placa.'],
+  'alto-falante-e-microfone-de-celular': ['Som, microfone', 'e vibração.'],
+  'botoes-e-carcaca-de-celular': ['Botões', 'e carcaça.'],
+  'celular-molhado': ['Caiu na água?', 'Saiba o que fazer.'],
+  'conserto-de-iphone': ['Conserto', 'de iPhone.'],
+  'conserto-de-celular-samsung': ['Conserto de', 'Samsung.'],
+  'conserto-de-celular-motorola': ['Conserto de', 'Motorola.'],
+  'backup-e-transferencia-de-dados-do-celular': ['Seus dados', 'no celular novo.'],
+}
+
 export const ROTAS: Rota[] = [
   {
     path: '/',
@@ -37,13 +58,15 @@ export const ROTAS: Rota[] = [
     titulo: p.titulo,
     descricao: p.descricao,
     pagina: p.slug,
+    og: OG_SERVICO[p.slug] ?? ([p.nome, 'com orçamento.'] as const),
+    ogNota: 'Orçamento por escrito · smarthere.com.br',
   })),
   {
     path: '/marca',
     rotulo: 'Marca',
     titulo: 'Manual da marca · Smarthere',
     descricao:
-      'O símbolo, as cores, as fontes e as regras de uso da marca Smarthere — com os arquivos do logotipo para baixar em SVG e PNG.',
+      'O símbolo, as cores, as fontes e as regras de uso da marca Smarthere, com os arquivos do logotipo para baixar em SVG e PNG.',
     og: ['Manual', 'da marca.'],
     ogNota: 'Símbolo · cores · tipografia · smarthere.com.br',
   },
