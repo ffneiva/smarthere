@@ -49,9 +49,7 @@ compartilhamento (que usa a foto).
 
 Dados que não existem ainda (o site se adapta enquanto forem `null`):
 
-- **WhatsApp** `(64) 9973-0616` (provisório, passado em 06/10/2026). Tem 8
-  dígitos depois do DDD: se a conta foi criada com o 9 na frente, trocar em
-  `business.ts` para `5564999730616`. A empresa não tem e-mail.
+- **WhatsApp** `(64) 99973-0616` (celular com 9 dígitos, confirmado em 22/10/2026). A empresa não tem e-mail.
 - **Endereço, cidade e horário.** Com endereço, o JSON-LD vira `LocalBusiness`
   e o rodapé mostra onde fica.
 - **Instagram** e demais redes.

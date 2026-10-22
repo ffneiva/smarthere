@@ -90,10 +90,10 @@ describe('JSON-LD', () => {
 
 describe('contato', () => {
   it('o contato é o WhatsApp da loja, com a mensagem codificada inteira', () => {
-    expect(EMPRESA.whatsapp).toBe('556499730616')
+    expect(EMPRESA.whatsapp).toBe('5564999730616')
     const url = new URL(linkContato('Tela trincada & toque falhando?'))
     expect(url.hostname).toBe('wa.me')
-    expect(url.pathname).toBe('/556499730616')
+    expect(url.pathname).toBe('/5564999730616')
     expect(url.searchParams.get('text')).toBe('Tela trincada & toque falhando?')
   })
 
@@ -180,7 +180,7 @@ describe('llms.txt', () => {
     const txt = gerarLlmsTxt()
     expect(txt.startsWith(`# ${EMPRESA.nome}\n`)).toBe(true)
     expect(txt).toContain(EMPRESA.telefone)
-    expect(txt).toContain('wa.me/556499730616')
+    expect(txt).toContain('wa.me/5564999730616')
     expect(txt).toContain('Troca de bateria')
     expect(txt).toContain('Art. 40')
     for (const p of FAQ) expect(txt).toContain(p.pergunta)

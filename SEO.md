@@ -36,7 +36,7 @@ Lista viva: marque `[x]` quando fizer. Em ordem de impacto.
 
 ### Primeiro: os dados da loja (destrava todo o SEO local)
 - [ ] **Endereço, cidade, horário e Instagram.** Hoje o site não publica cidade nenhuma, então o Google não tem como mostrar a Smarthere para "conserto de celular perto de mim" ou "conserto de celular em <cidade>". Com os dados, preenchemos `src/lib/business.ts` e o site passa a declarar loja física com endereço, horário, mapa e as páginas ganham a cidade no título.
-- [ ] **Confirmar o WhatsApp (64) 9973-0616**: tem 8 dígitos depois do DDD; se a conta foi criada com o 9, o número muda.
+- [x] **WhatsApp (64) 99973-0616** com 9 dígitos em todo o site (22/10/2026).
 
 ### Logo depois
 - [ ] **Perfil da Empresa no Google (Google Meu Negócio).** É o que mais pesa para conserto de celular, que é uma busca local. Categoria "Assistência técnica de celulares", nome exatamente "Smarthere", o mesmo telefone e o site https://smarthere.com.br, horário, fotos da loja e da bancada, serviços com os mesmos nomes do site.

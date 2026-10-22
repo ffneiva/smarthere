@@ -40,13 +40,12 @@ export const EMPRESA = {
     'Assistência técnica de celulares: troca de tela e bateria, conector de carga, câmera, tampa traseira, áudio, botões e reparo de placa, com orçamento por escrito antes de qualquer reparo.',
   /**
    * O WhatsApp da loja, só dígitos com DDI e DDD — o único canal de contato
-   * (a empresa não tem e-mail). Passado pelo Felipe em 06/10/2026 como
-   * "+55 64 9973-0616", provisório. CONFIRMAR: o número tem 8 dígitos depois
-   * do DDD; se a conta foi criada com o 9 na frente, trocar por 5564999730616.
+   * (a empresa não tem e-mail): +55 64 99973-0616. Celular sempre com 9
+   * dígitos depois do DDD (confirmado pelo Felipe em 22/10/2026).
    */
-  whatsapp: '556499730616',
+  whatsapp: '5564999730616',
   /** O mesmo número, para leitura. */
-  telefone: '(64) 9973-0616',
+  telefone: '(64) 99973-0616',
   /** CONFIRMAR: o perfil do Instagram, sem @. */
   instagram: null as string | null,
   /**

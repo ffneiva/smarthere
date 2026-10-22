@@ -81,5 +81,5 @@ test('sem JavaScript, o noscript traz o nome e o contato', async ({ request }) =
   const html = await (await request.get('/')).text()
   const bloco = html.match(/<noscript>([\s\S]*?)<\/noscript>/)?.[1] ?? ''
   expect(bloco).toContain('Smarthere')
-  expect(bloco).toContain('wa.me/556499730616')
+  expect(bloco).toContain('wa.me/5564999730616')
 })

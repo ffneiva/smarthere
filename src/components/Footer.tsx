@@ -126,7 +126,7 @@ export function Footer() {
               Política de privacidade
             </a>
             <a
-              href="https://github.com/ffneiva"
+              href="https://ffneiva.com.br"
               target="_blank"
               rel="noopener"
               className="inline-flex items-center gap-1.5 hover:text-gelo"
