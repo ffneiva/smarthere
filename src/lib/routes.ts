@@ -58,7 +58,8 @@ export const ROTAS: Rota[] = [
     titulo: p.titulo,
     descricao: p.descricao,
     pagina: p.slug,
-    og: OG_SERVICO[p.slug] ?? ([p.nome, 'com orçamento.'] as const),
+    // Toda página de serviço tem as linhas dela (o teste de SEO garante).
+    og: OG_SERVICO[p.slug],
     ogNota: 'Orçamento por escrito · smarthere.com.br',
   })),
   {
